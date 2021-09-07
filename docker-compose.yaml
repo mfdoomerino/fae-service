@@ -1,0 +1,37 @@
+# This is a docker manifest for development, NOT production.
+
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER_ID: ${USER_ID:-0}
+        GROUP_ID: ${GROUP_ID:-0}
+    volumes:
+      - ${PWD}:/home/user/app:z
+    ports:
+      - 4000:4000
+      - 35729:35729
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db/fae_develop
+    stdin_open: true
+    tty: true
+    command: iex -S mix do ecto.migrate, phx.server
+    env_file:
+      - .env
+  db:
+    image: postgres:11-alpine@sha256:077793cc0ed31fd0568ce468d85d0843b8dea37c9ef74eb81b4ccf0fe9539e2e
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+volumes:
+  pgdata:
